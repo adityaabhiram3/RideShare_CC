@@ -1,0 +1,33 @@
+version: '3.7'
+
+x-default: &default
+    environment:
+        - TEAM_NAME=CC_0107_0175_1133_1501
+    networks:
+        - rides
+    restart: always
+
+services:
+    rides-nginx:
+        <<: *default
+        container_name: rides-nginx
+        image: nginx:latest
+        ports:
+            - "80:80"
+        volumes:
+            - ./proxy_params:/etc/nginx/proxy_params
+            - ./nginx.conf:/etc/nginx/conf.d/default.conf
+
+    rides:
+        <<: *default
+        build: .
+        container_name: rides
+        image: rides:latest
+        volumes:
+            - ./AreaNameEnum.csv:/src/AreaNameEnum.csv
+            - ./wsgi.py:/src/wsgi.py
+            - ./app.py:/src/app.py
+
+networks:
+    rides:
+        name: rides

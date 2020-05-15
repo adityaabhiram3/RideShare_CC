@@ -1,0 +1,48 @@
+version: '3.8'
+
+x-default: &default
+    environment:
+        - PYTHONUNBUFFERED=1
+        - TEAM_NAME=CC_0107_0175_1133_1501
+    networks:
+        - dbaas
+    restart: always
+
+services:
+    rabbitmq:
+        <<: *default
+        container_name: rabbitmq
+        image: rabbitmq:latest
+
+    zookeeper:
+        <<: *default
+        container_name: zookeeper
+        environment:
+            - ZOO_MY_ID=1
+            - ZOO_SERVERS=server.1=0.0.0.0:2888:3888;2181
+        image: zookeeper:latest
+        hostname: zookeeper
+
+    common:
+        <<: *default
+        container_name: common
+        image: mongo:latest
+
+    orchestrator:
+        <<: *default
+        build: .
+        container_name: orchestrator
+        depends_on:
+            - rabbitmq
+            - zookeeper
+        image: orchestrator:latest
+        ports:
+            - "80:5000"
+        volumes:
+            - ./orchestrator.py:/src/orchestrator.py
+            - /usr/bin/docker:/usr/bin/docker
+            - /var/run/docker.sock:/var/run/docker.sock
+
+networks:
+   dbaas:
+       name: dbaas

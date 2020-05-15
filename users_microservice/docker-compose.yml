@@ -1,0 +1,32 @@
+version: '3.7'
+
+x-default: &default
+    environment:
+        - TEAM_NAME=CC_0107_0175_1133_1501
+    networks:
+        - users
+    restart: always
+
+services:
+    users-nginx:
+        <<: *default
+        container_name: users-nginx
+        image: nginx:latest
+        ports:
+            - "80:80"
+        volumes:
+            - ./proxy_params:/etc/nginx/proxy_params
+            - ./nginx.conf:/etc/nginx/conf.d/default.conf       
+
+    users:
+        <<: *default
+        build: .
+        container_name: users
+        image: users:latest
+        volumes:
+            - ./wsgi.py:/src/wsgi.py
+            - ./app.py:/src/app.py
+
+networks:
+    users:
+        name: users
